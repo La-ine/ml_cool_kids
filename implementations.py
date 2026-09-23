@@ -22,7 +22,7 @@ def mean_squared_error_gd(y, tx, initial_w, max_iters, gamma):
         (w, loss): final weight vector of shape (D,) and its MSE loss.
     """
     w = initial_w
-    for n_iter in range(max_iters):
+    for _ in range(max_iters):
         grad = compute_gradient(y, tx, w)
         w = w - gamma * grad
     loss = compute_loss_MSE(y, tx, w)
@@ -45,7 +45,7 @@ def mean_squared_error_sgd(y, tx, initial_w, max_iters, gamma):
         (computed on the FULL dataset, not just the last mini-batch).
     """
     w = initial_w
-    for n_iter in range(max_iters):
+    for _ in range(max_iters):
         for batch_y, batch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
             grad = compute_gradient(batch_y, batch_tx, w)
             w = w - gamma * grad
@@ -108,7 +108,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         (w, loss): final weight vector of shape (D,) and its cross-entropy loss.
     """
     w = initial_w
-    for n_iter in range(max_iters):
+    for _ in range(max_iters):
         grad = compute_gradient_logistic(y, tx, w)
         w = w - gamma * grad
     loss = compute_loss_cross_entropy(y, tx, w)
@@ -133,7 +133,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         not in the reported loss).
     """
     w = initial_w
-    for n_iter in range(max_iters):
+    for _ in range(max_iters):
         grad = compute_gradient_logistic(y, tx, w) + 2 * lambda_ * w
         w = w - gamma * grad
     loss = compute_loss_cross_entropy(y, tx, w)  # no penalty term included
