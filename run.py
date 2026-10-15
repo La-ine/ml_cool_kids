@@ -92,6 +92,11 @@ def main():
         reader = csv.reader(f)
         feature_names = np.array(next(reader))
 
+    assert len(y_train) == len(x_train_raw) == len(train_ids), \
+        f"Length mismatch: x={len(x_train_raw)}, y={len(y_train)}, ids={len(train_ids)}"
+    assert len(np.unique(train_ids)) == len(train_ids), "Duplicate IDs in train_ids"
+    assert np.all(np.diff(train_ids) > 0), "train_ids not monotonically increasing"
+
     print("x_train_raw:", x_train_raw.shape, "| x_test_raw:", x_test_raw.shape)
     print("y_train unique:", np.unique(y_train),
           "| positive rate:", np.mean(y_train == 1))
@@ -120,6 +125,8 @@ def main():
           f"(threshold={MISSING_THRESHOLD})")
 
     y_tr_01 = convert_labels_to_logistic(y_tr)
+    print("Verified training samples:", tx_tr.shape[0])
+    print("Verified validation samples:", tx_val.shape[0]) 
 
     print("\n" + "=" * 60)
     print(f"STEP 4: {K_FOLD}-fold CV grid search over lambda x gamma")

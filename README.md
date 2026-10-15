@@ -135,6 +135,6 @@ levers explored and documented in `report.pdf`.
 
 ## Authors
 
-ML Course Project 1, Team "ml_cool_kids" - Samarah YASSIN (SCIPER), Kerim TUNÇELLI (SCIPER), Laïne DIONGUE (363203).
+ML Course Project 1, Team "ml_cool_kids" - Samarah YASSIN, Kerim TUNÇELLI, Laïne DIONGUE.
 
 EPFL, Fall 2026.
