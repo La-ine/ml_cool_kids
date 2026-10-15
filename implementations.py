@@ -206,8 +206,10 @@ def compute_loss_cross_entropy(y, tx, w, l=0):
         Scalar loss value.
     """
     N = len(tx)
-    e = y*np.log(sigmoid(np.dot(tx, w))) + (1-y)*np.log(1-sigmoid(np.dot(tx.T, w))) + l*np.dot(w, w)
-    loss = -1/N*np.sum(e)
+    eps = 1e-12
+    p = sigmoid(np.dot(tx, w))
+    e = y * np.log(p + eps) + (1 - y) * np.log(1 - p + eps) + l * np.dot(w, w)
+    loss = -1 / N * np.sum(e)
     return loss
 
 

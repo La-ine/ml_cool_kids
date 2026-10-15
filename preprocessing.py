@@ -1,74 +1,11 @@
 import numpy as np
-import csv
-
-
-def load_csv_data(x_path, y_path=None, sub_sample=False):
-    """Load the raw x_train / y_train (or x_test) CSVs into numpy arrays.
-
-    Args:
-        x_path: str, path to the features CSV (e.g. "x_train.csv").
-        y_path: str or None, path to the labels CSV (e.g. "y_train.csv").
-                None when loading test features with no labels available.
-        sub_sample: bool, if True load only every 50th row (fast local debugging).
-
-    Returns:
-        ids: numpy array of shape (N,), the "Id" column.
-        x: numpy array of shape (N, D_raw), raw feature matrix (no bias column,
-           columns exactly as in the CSV, still containing NaNs).
-        y: numpy array of shape (N,) with entries in {-1, 1}, or None if
-           y_path is None.
-    """
-    path_dataset_x = "./dataset/" + x_path
-
-    with open(path_dataset_x, "r") as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        rows = [row for row in reader]
-
-    n_cols_expected = len(header)
-    good_mask = [len(row) == n_cols_expected for row in rows]
-    n_dropped = len(rows) - sum(good_mask)
-    if n_dropped:
-        dropped_idx = [i for i, ok in enumerate(good_mask) if not ok]
-        print(f"Warning: dropping {n_dropped} malformed row(s) at index(es) {dropped_idx} "
-              f"(column count mismatch vs header={n_cols_expected}).")
-    rows = [row for row, ok in zip(rows, good_mask) if ok]
-
-    rows = [["nan" if v == "" else v for v in row] for row in rows]
-    data_x = np.array(rows, dtype=float)
-    ids = data_x[:, 0]
-    x = data_x[:, 1:]
-
-    y = None
-    if y_path is not None:
-        path_dataset_y = "./dataset/" + y_path
-        with open(path_dataset_y, "r") as f:
-            reader = csv.reader(f)
-            header_y = next(reader)
-            rows_y = [row for row in reader]
-        # keep y rows aligned with x rows: drop the SAME ids that were dropped from x
-        if n_dropped:
-            dropped_ids = set(rows_y[i][0] for i in dropped_idx)
-            rows_y = [row for row in rows_y if row[0] not in dropped_ids]
-        rows_y = [["nan" if v == "" else v for v in row] for row in rows_y]
-        data_y = np.array(rows_y, dtype=float)
-        y = data_y[:, 1]
-
-    if sub_sample:
-        ids = ids[::50]
-        x = x[::50]
-        if y is not None:
-            y = y[::50]
-
-    return ids, x, y
 
 
 def clean_features(x, nan_threshold=0.8, fill_value="median"):
     """Drop columns that are mostly NaN and impute remaining missing values.
 
     Args:
-        x: numpy array of shape (N, D_raw), possibly containing NaNs
-           (e.g. _FLSHOT6, _PNEUMO2, _AIDTST3 columns in the sample head).
+        x: numpy array of shape (N, D_raw), possibly containing NaNs.
         nan_threshold: float in (0,1), drop any column whose fraction of
            NaN entries exceeds this threshold.
         fill_value: "median", "mean", or a float; strategy for imputing
@@ -77,10 +14,9 @@ def clean_features(x, nan_threshold=0.8, fill_value="median"):
     Returns:
         x_clean: numpy array of shape (N, D_kept), NaN-free.
         kept_columns: numpy array of shape (D_kept,), integer indices of the
-           columns kept from the original x (needed to apply the identical
-           transform to x_test later).
+           columns kept from the original x.
         fill_values: numpy array of shape (D_kept,), the imputation value
-           used per kept column (needed to reproduce imputation on x_test).
+           used per kept column.
     """
     nan_frac = np.isnan(x).mean(axis=0)
     kept_columns = np.where(nan_frac <= nan_threshold)[0]
@@ -100,29 +36,21 @@ def clean_features(x, nan_threshold=0.8, fill_value="median"):
 
 
 def labels_to_01(y):
-    """Convert labels from {-1, 1} to {0, 1} for use with cross-entropy /
-    logistic_regression / reg_logistic_regression, which expect y in {0,1}.
-
-    Args:
-        y: numpy array of shape (N,), entries in {-1, 1}.
-
-    Returns:
-        numpy array of shape (N,), entries in {0, 1} (-1 -> 0, 1 -> 1).
-    """
+    """Convert labels from {-1, 1} to {0, 1}."""
     return np.where(y == -1, 0, 1)
 
 
 def labels_to_pm1(y01):
-    """Inverse of labels_to_01: convert {0,1} predictions back to {-1,1}
-    for submission / evaluation against the original y_train format.
-
-    Args:
-        y01: numpy array of shape (N,), entries in {0, 1}.
-
-    Returns:
-        numpy array of shape (N,), entries in {-1, 1} (0 -> -1, 1 -> 1).
-    """
+    """Inverse of labels_to_01: convert {0,1} predictions back to {-1,1}."""
     return np.where(y01 == 0, -1, 1)
+
+
+# Kept as an alias since run.py refers to this operation as
+# "convert_labels_to_logistic" (labels -> {0,1} for logistic regression).
+def convert_labels_to_logistic(y):
+    """Convert labels from {-1, 1} to {0, 1} for logistic_regression /
+    reg_logistic_regression, which expect y in {0,1}. Alias of labels_to_01."""
+    return labels_to_01(y)
 
 
 def standardize_columns(x, mean=None, std=None):
@@ -131,17 +59,6 @@ def standardize_columns(x, mean=None, std=None):
     If mean/std are None, they are computed from x (use this on x_train).
     If mean/std are given, they are applied as-is (use this on x_val/x_test
     with the TRAINING mean/std, never recomputed on val/test).
-
-    Args:
-        x: numpy array of shape (N, D).
-        mean: numpy array of shape (D,) or None.
-        std: numpy array of shape (D,) or None.
-
-    Returns:
-        x_std: numpy array of shape (N, D), standardized features.
-        mean_x: numpy array of shape (D,), the mean used (either computed or passed in).
-        std_x: numpy array of shape (D,), the std used (either computed or passed in);
-             columns with std == 0 should be handled (e.g. set to 1) to avoid div-by-zero.
     """
     if mean is None:
         mean_x = np.mean(x, axis=0)
@@ -159,14 +76,72 @@ def standardize_columns(x, mean=None, std=None):
 
 
 def build_tx(x):
-    """Prepend the bias column of ones, matching helpers.build_model_data's
-    convention (tx = [1, x_1, ..., x_D]).
-
-    Args:
-        x: numpy array of shape (N, D).
-
-    Returns:
-        tx: numpy array of shape (N, D+1).
-    """
+    """Prepend the bias column of ones: tx = [1, x_1, ..., x_D]."""
     N = x.shape[0]
     return np.c_[np.ones(N), x]
+
+
+def fit_preprocessor(x, feature_names=None, missing_threshold=0.80, fill_value="median"):
+    """Fit the full preprocessing pipeline (NaN-column dropping + imputation
+    + standardization + bias column) on a TRAINING split, and return both
+    the transformed data and the fitted parameters needed to apply the
+    identical transform later to validation/test data.
+
+    Args:
+        x: numpy array of shape (N, D_raw), raw feature matrix (no Id column).
+        feature_names: numpy array of shape (D_raw + 1,) including "Id" as
+           the first entry (as read directly from the CSV header), or None.
+        missing_threshold: float in (0,1), passed to clean_features.
+        fill_value: "median", "mean", or a float, passed to clean_features.
+
+    Returns:
+        tx: numpy array of shape (N, D_kept + 1), standardized + bias column.
+        retained_names: numpy array of the feature names kept (excluding
+           "Id"), or None if feature_names was None.
+        params: dict with "kept_columns", "fill_values", "mean", "std" --
+           pass this to transform_with_preprocessor for val/test data.
+    """
+    x_clean, kept_columns, fill_values = clean_features(
+        x, nan_threshold=missing_threshold, fill_value=fill_value
+    )
+    x_std, mean_x, std_x = standardize_columns(x_clean)
+    tx = build_tx(x_std)
+
+    retained_names = None
+    if feature_names is not None:
+        retained_names = feature_names[1:][kept_columns]
+
+    params = {
+        "kept_columns": kept_columns,
+        "fill_values": fill_values,
+        "mean": mean_x,
+        "std": std_x,
+    }
+    return tx, retained_names, params
+
+
+def transform_with_preprocessor(x, feature_names, params):
+    """Apply a previously-fitted preprocessing pipeline (from fit_preprocessor)
+    to new data (validation or test), reusing the exact column selection,
+    imputation values, and standardization stats learned on the training set.
+
+    Args:
+        x: numpy array of shape (N, D_raw), raw feature matrix (no Id column).
+        feature_names: numpy array of shape (D_raw + 1,) including "Id", or None.
+        params: dict returned by fit_preprocessor.
+
+    Returns:
+        tx: numpy array of shape (N, D_kept + 1), standardized + bias column.
+        retained_names: numpy array of the feature names kept, or None.
+    """
+    x_kept = x[:, params["kept_columns"]]
+    nan_mask = np.isnan(x_kept)
+    x_clean = np.where(nan_mask, params["fill_values"], x_kept)
+    x_std, _, _ = standardize_columns(x_clean, mean=params["mean"], std=params["std"])
+    tx = build_tx(x_std)
+
+    retained_names = None
+    if feature_names is not None:
+        retained_names = feature_names[1:][params["kept_columns"]]
+
+    return tx, retained_names
