@@ -4,23 +4,6 @@ from implementations import reg_logistic_regression, sigmoid
 from evaluation import compute_metrics
 
 
-def split_data(y, tx, ratio=0.8, seed=1):
-    """Randomly split (y, tx) into a training and validation subset."""
-    np.random.seed(seed)
-    num_tr_samples = int(len(tx) * ratio)
-
-    indices = np.random.permutation(len(tx))
-    train_indices = indices[:num_tr_samples]
-    val_indices = indices[num_tr_samples:]
-
-    tx_val = tx[val_indices]
-    y_val = y[val_indices]
-
-    tx_tr = tx[train_indices]
-    y_tr = y[train_indices]
-    return y_tr, tx_tr, y_val, tx_val
-
-
 def build_k_indices(y, k_fold, seed=1):
     """Build the row indices for k-fold cross-validation.
 

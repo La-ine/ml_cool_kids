@@ -23,21 +23,27 @@ project rules.
 ```
 .
 ├── dataset/
-│   ├── x_train.csv         # (328135, 322) raw features, incl. "Id" column
-│   ├── y_train.csv         # (328135, 2) "Id", "_MICHD" in {-1, 1}
-│   └── x_test.csv          # test features, no labels
+│ ├── x_train.csv              # (328135, 322) raw training features, incl. "Id"
+│ ├── y_train.csv              # (328135, 2) labels ("Id", "_MICHD" in {-1, 1})
+│ └── x_test.csv               # (109379, 322) test features without labels
+│
 ├── reports/
-│   ├── run_report.txt      # generated: config, best hyperparameters, validation metrics
-│   └── cv_f1_grid.csv      # generated: F1 grid used for the hyperparameter heatmap
-├── helpers.py              # load_csv_data, create_csv_submission (course-provided, made
-│                           # robust to malformed CSV rows)
-├── implementations.py      # the 6 required ML methods + low-level helpers
-├── preprocessing.py        # NaN filtering/imputation, standardization, label conversion
-├── cross_validation.py     # k-fold split + (lambda, gamma) grid search
-├── evaluation.py           # metrics (accuracy/precision/recall/F1), reporting
-├── run.py                  # full pipeline: load -> preprocess -> CV -> train -> predict
-├── submission.csv          # generated: final predictions, ready for AIcrowd upload
-└── report.pdf              # 2-page scientific report (LaTeX), separate deliverable
+│ ├── class_balance.png        # generated: training class distribution
+│ ├── confusion_matrix.png     # generated: validation confusion matrix
+│ ├── cv_f1_grid.csv           # generated: hyperparameter tuning grid results
+│ ├── feature_importance.png   # generated: top-15 standardized feature weights
+│ ├── hyperparam_heatmap.png   # generated: cross-validation F1 score heatmap
+│ └── run_report.txt           # generated: configuration, best hyperparameters, metrics
+│
+├── helpers.py                 # I/O utilities (load_csv_data, create_csv_submission)
+├── implementations.py         # mandatory 6 ML baseline methods + core optimization helpers
+├── preprocessing.py           # missing-value imputation, standardization, label mapping
+├── cross_validation.py        # stratified k-fold splitting and hyperparameter grid search
+├── evaluation.py              # classification metrics (accuracy, precision, recall, F1)
+├── visualization.py           # reporting figures and diagnostic plot generators
+├── run.py                     # full pipeline: loads data, runs CV, trains model, exports predictions
+├── submission.csv             # generated: final test predictions formatted for AIcrowd
+└── report.pdf                 # 2-page scientific conference-style project report
 ```
 
 ## Setup

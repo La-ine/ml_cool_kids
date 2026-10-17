@@ -152,33 +152,3 @@ def plot_feature_importance(w, feature_names, top_k=15,
     plt.tight_layout()
     plt.savefig(save_path, dpi=150)
     return fig
-
-
-def plot_ablation_comparison(labels, scores, metric_name="F1",
-                               save_path="reports/ablation_comparison.png"):
-    """Bar chart comparing validation scores across an ablation study
-    (e.g. baseline -> + NaN handling -> + standardization -> + reg tuning
-    -> + threshold tuning), directly supporting the "ablation study" and
-    "baselines" grading criteria in the report.
-
-    Args:
-        labels: list of str, one name per experiment/configuration.
-        scores: list of float, the corresponding validation score
-           (e.g. F1) for each configuration, same order as labels.
-        metric_name: str, for the y-axis label.
-        save_path: str, where to save the figure.
-
-    Returns:
-        matplotlib.figure.Figure
-    """
-    fig, ax = plt.subplots(figsize=(1.3 * len(labels) + 2, 4.5))
-    bars = ax.bar(labels, scores, color="#4C72B0")
-    for b, v in zip(bars, scores):
-        ax.text(b.get_x() + b.get_width() / 2, v, f"{v:.3f}",
-                  ha="center", va="bottom", fontsize=9)
-    ax.set_ylabel(f"Validation {metric_name}")
-    ax.set_title("Ablation study: impact of each modification")
-    plt.xticks(rotation=20, ha="right")
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=150)
-    return fig

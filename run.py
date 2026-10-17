@@ -15,7 +15,6 @@ Produces:
     - reports/class_balance.png            (class distribution)
     - reports/confusion_matrix.png         (validation confusion matrix)
     - reports/feature_importance.png       (top-k logistic regression weights)
-    - reports/ablation_comparison.png      (ablation study bar chart)
 """
 
 import csv
@@ -39,8 +38,7 @@ from visualization import (
     plot_hyperparam_heatmap,
     plot_class_balance,
     plot_confusion_matrix,
-    plot_feature_importance,
-    plot_ablation_comparison,
+    plot_feature_importance
 )
 
 DATA_PATH = "dataset"

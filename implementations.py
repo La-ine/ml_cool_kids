@@ -1,10 +1,4 @@
 import numpy as np
-import helpers
-
-########################### GLOBAL VARIABLES ###########################
-
-MAX_ITER = 50
-GAMMA = 0.1
 
 ########################### 6 MAIN functions ###########################
 
@@ -158,25 +152,6 @@ def compute_loss_MSE(y, tx, w):
     y_hat = np.dot(tx, w)
     e = y - y_hat
     loss = np.sum(e**2)/ (2*N)
-    return loss
-
-
-def compute_loss_MAE(y, tx, w):
-    """Compute the mean absolute error loss (with the 1/2 factor from the
-    lecture notes: L(w) = 1/(2N) * sum(|(y - tx@w)|)).
-
-    Args:
-        y: numpy array of shape (N,)
-        tx: numpy array of shape (N, D)
-        w: numpy array of shape (D,)
-
-    Returns:
-        Scalar loss value.
-    """
-    N = len(tx)
-    y_hat = np.dot(tx, w)
-    e = y - y_hat
-    loss = np.sum(np.abs(e)) / (2*N)
     return loss
 
 
